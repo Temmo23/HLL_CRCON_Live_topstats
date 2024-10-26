@@ -22,27 +22,36 @@ from rcon.rcon import Rcon, StructuredLogLineWithMetaData
 LANG = 0
 
 # Gives a bonus to defense
-# ie : 1.4 means "defense counts 1.4x more than offense"
+# ie : 1.5 means "defense counts 1.5x more than offense"
+# 0 to disable the bonus
+# Use 0 < x <1 values to set a malus
 OFFENSEDEFENSE_RATIO = 1.5
 # Gives a bonus to support
 COMBATSUPPORT_RATIO = 1.5
 
 
-# If called from chat (command = "!top")
+# Calling from chat
 # ----------------------------------------
+
+# Chat command
+CHAT_COMMAND = "!top"
+
 # How many tops in each category should we display ?
 # Prefer 1-3 for a shorter message
 TOPS_CHAT = 3
+
 # Squads : display squad members for the nth top squads
 # Prefer 0 for a shorter message
 TOPS_CHAT_DETAIL_SQUADS = 1
 
 
-# When called at MATCH END
+# Displayed at MATCH END
 # ----------------------------------------
+
 # How many tops in each category should we display ?
 # Prefer 1-3 for a shorter message
 TOPS_MATCHEND = 3
+
 # Squads : display squad members for the nth top squads
 # Prefer 0 for a shorter message
 TOPS_MATCHEND_DETAIL_SQUADS = 1
@@ -433,7 +442,7 @@ def stats_on_chat_command(
     struct_log: StructuredLogLineWithMetaData
 ):
     """
-    Sends actual top scores in an ingame message to the player who types "!top" in chat
+    Sends actual top scores in an ingame message to the player who types the defined command in chat
     """
     chat_message: str|None = struct_log["sub_content"]
     if chat_message is None:
@@ -443,7 +452,7 @@ def stats_on_chat_command(
     if player_id is None:
         return
 
-    if struct_log["sub_content"] == "!top":
+    if struct_log["sub_content"] == CHAT_COMMAND:
         (
             top_commanders_teamplay,
             top_infantry_offdef,
