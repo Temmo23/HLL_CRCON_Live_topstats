@@ -65,5 +65,5 @@ and would easily get a VIP on each game.
   ```
 ⚠️ Any change to these files :
 - `/root/hll_rcon_tool/custom_tools/hooks_custom_topstats.py` ;
-- `/root/hll_rcon_tool/hooks.py`
-...will need a CRCON restart with the above commands to be taken in account.
+- `/root/hll_rcon_tool/hooks.py`  
+...will need a CRCON restart (using `restart.sh` script) to be taken in account.
