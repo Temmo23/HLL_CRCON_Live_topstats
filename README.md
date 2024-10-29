@@ -39,7 +39,7 @@ So support value can be multiplied for a bonus.
 Tankers don't get any VIP, as they (normally) have a huge combat score
 and would easily get a VIP on each game.
 
-## Installation
+## Install
 - Create `custom_tools` folder in CRCON's root (`/root/hll_rcon_tool/`) ;
 - Copy `hooks_custom_topstats.py` in `/root/hll_rcon_tool/custom_tools/` ;
 - Copy `restart.sh` in CRCON's root (`/root/hll_rcon_tool/`) ;
