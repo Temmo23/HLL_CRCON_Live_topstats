@@ -58,6 +58,9 @@ and would easily get a VIP on each game.
     def topstats_onmatchend(rcon: Rcon, struct_log: StructuredLogLineWithMetaData):
         hooks_custom_topstats.stats_on_match_end(rcon, struct_log)
     ```
+
+## Config
+- Edit `/root/hll_rcon_tool/custom_tools/hooks_custom_topstats.py` and set the parameters to your needs ;
 - Restart CRCON :
   ```shell
   cd /root/hll_rcon_tool
