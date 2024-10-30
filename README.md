@@ -63,6 +63,8 @@ and would easily get a VIP on each game.
   cd /root/hll_rcon_tool
   sh ./restart.sh
   ```
+
+## Limitations
 ⚠️ Any change to these files :
 - `/root/hll_rcon_tool/custom_tools/hooks_custom_topstats.py` ;
 - `/root/hll_rcon_tool/hooks.py`  
