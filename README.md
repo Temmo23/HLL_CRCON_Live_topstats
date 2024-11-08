@@ -1,4 +1,4 @@
-# HLL_CRCON_Topstats
+# HLL_CRCON_Live_topstats
 
 A plugin for HLL CRCON (see : https://github.com/MarechJ/hll_rcon_tool)
 that displays and rewards top players, based on their scores.
@@ -40,27 +40,27 @@ Tankers don't get any VIP, as they (normally) have a huge combat score
 and would easily get a VIP on each game.
 
 ## Install
-- Create `custom_tools` folder in CRCON's root (`/root/hll_rcon_tool/`) ;
-- Copy `hooks_custom_topstats.py` in `/root/hll_rcon_tool/custom_tools/` ;
 - Copy `restart.sh` in CRCON's root (`/root/hll_rcon_tool/`) ;
-- Edit `/root/hll_rcon_tool/rcon/hooks.py` and add these lines:
+- Create `custom_tools` folder in CRCON's root (`/root/hll_rcon_tool/`) ;
+- Copy `live_topstats.py` in the newly created `/root/hll_rcon_tool/custom_tools/` folder ;
+- Edit `/root/hll_rcon_tool/rcon/hooks.py` and add these lines :
   - in the import part, on top of the file
     ```python
-    import custom_tools.hooks_custom_topstats as hooks_custom_topstats
+    import custom_tools.live_topstats as live_topstats
     ```
   - At the very end of the file
     ```python
     @on_chat
-    def topstats_onchat(rcon: Rcon, struct_log: StructuredLogLineWithMetaData):
-        hooks_custom_topstats.stats_on_chat_command(rcon, struct_log)
+    def livetopstats_onchat(rcon: Rcon, struct_log: StructuredLogLineWithMetaData):
+      live_topstats.stats_on_chat_command(rcon, struct_log)
 
     @on_match_end
-    def topstats_onmatchend(rcon: Rcon, struct_log: StructuredLogLineWithMetaData):
-        hooks_custom_topstats.stats_on_match_end(rcon, struct_log)
+    def livetopstats_onmatchend(rcon: Rcon, struct_log: StructuredLogLineWithMetaData):
+      live_topstats.stats_on_match_end(rcon, struct_log)
     ```
 
 ## Config
-- Edit `/root/hll_rcon_tool/custom_tools/hooks_custom_topstats.py` and set the parameters to your needs ;
+- Edit `/root/hll_rcon_tool/custom_tools/live_topstats.py` and set the parameters to your needs ;
 - Restart CRCON :
   ```shell
   cd /root/hll_rcon_tool
@@ -68,10 +68,9 @@ and would easily get a VIP on each game.
   ```
 
 ## Limitations
-⚠️ Any change to these files :
-- `/root/hll_rcon_tool/custom_tools/hooks_custom_topstats.py` ;
-- `/root/hll_rcon_tool/rcon/hooks.py`  
-...will need a CRCON restart (using `restart.sh` script) to be taken in account.
+⚠️ Any change to these files requires a CRCON rebuild and restart (using the `restart.sh` script) to be taken in account :
+- `/root/hll_rcon_tool/custom_tools/live_topstats.py`
+- `/root/hll_rcon_tool/rcon/hooks.py`
 
 ⚠️ This plugin requires a modification of the `/root/hll_rcon_tool/rcon/hooks.py` file, which originates from the official CRCON depot.  
 If any CRCON upgrade implies updating this file, the usual upgrade procedure, as given in official CRCON instructions, will **FAIL**.  
