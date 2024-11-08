@@ -42,7 +42,7 @@ and would easily get a VIP on each game.
 ## Install
 - Copy `restart.sh` in CRCON's root (`/root/hll_rcon_tool/`) ;
 - Create `custom_tools` folder in CRCON's root (`/root/hll_rcon_tool/`) ;
-- Copy `live_topstats.py` in the newly created `/root/hll_rcon_tool/custom_tools/` folder ;
+- Copy `live_topstats.py` into the newly created `/root/hll_rcon_tool/custom_tools/` folder ;
 - Edit `/root/hll_rcon_tool/rcon/hooks.py` and add these lines :
   - in the import part, on top of the file
     ```python
