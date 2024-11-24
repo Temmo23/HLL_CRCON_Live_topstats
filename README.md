@@ -12,22 +12,22 @@ that displays and rewards top players, based on their scores.
 
 ## Observed scores
 
-- (top players will earn a VIP at game's end)  
-  - commanders  
-    - combat + (support * bonus)  
-  - infantry players  
-    - offense * (defense * bonus)  
-    - combat + (support * bonus)  
-- (for info only - no VIPs given)  
-  - infantry players  
-    - kills / deaths  
-    - kills / minute  
-  - infantry squads  
-    - offense * (defense * bonus)  
-    - combat + (support * bonus)  
-  - armor squads  
-    - offense * (defense * bonus)  
-    - combat + (support * bonus)  
+(top players will earn a VIP at game's end)
+- commanders
+  - combat + (support * bonus)
+- infantry players
+  - offense * (defense * bonus)
+  - combat + (support * bonus)
+(for info only - no VIPs given)
+- infantry players
+  - kills / deaths
+  - kills / minute
+- infantry squads
+  - offense * (defense * bonus)
+  - combat + (support * bonus)
+- armor squads
+  - offense * (defense * bonus)
+  - combat + (support * bonus)
 
 - A multiplication bonus can be given to defense and support scores, if you want to reward teamplay more than individual skills.  
 Doing so will ensure the teamplayers will enter the server more often than CODdies.  
