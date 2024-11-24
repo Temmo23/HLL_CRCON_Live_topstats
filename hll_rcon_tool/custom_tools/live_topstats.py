@@ -24,8 +24,9 @@ LANG = 0
 # Gives a bonus to defense
 # ie : 1.5 means "defense counts 1.5x more than offense"
 # 0 to disable the bonus
-# Use 0 < x <1 values to set a malus
+# Use 0 < x < 1 values (ie : 0.75) to set a malus
 OFFENSEDEFENSE_RATIO = 1.5
+
 # Gives a bonus to support
 COMBATSUPPORT_RATIO = 1.5
 
@@ -33,7 +34,7 @@ COMBATSUPPORT_RATIO = 1.5
 # Calling from chat
 # ----------------------------------------
 
-# Chat command
+# CHAT command
 CHAT_COMMAND = "!top"
 
 # How many tops in each category should we display ?
@@ -66,6 +67,10 @@ TOPS_MATCHEND_DETAIL_SQUADS = 1
 # 0 to disable
 VIP_WINNERS = 1
 
+# Avoid to give a VIP to an "entered at last second" commander
+VIP_COMMANDER_MIN_PLAYTIME_MINS = 20
+VIP_COMMANDER_MIN_SUPPORT_SCORE = 1000
+
 # VIPs will be given if there is at least this number of players ingame
 # 0 to disable (VIP will always be given)
 # Recommended : the same number as your seed limit
@@ -88,22 +93,21 @@ LOCAL_TIME_FORMAT = "%d/%m/%Y à %Hh%M"
 TRANSL = {
     "nostatsyet": ["No stats yet", "Pas de stats", "noch keine Statistiken"],
     "allies": ["all", "all", "all"],
-    "axis": ["axe", "axe", "axe"],
+    "axis": ["axi", "axe", "Ach"],
     "best_players": ["Best players", "Meilleurs joueurs", "Beste Spieler"],
     "armycommander": ["Commander", "Commandant", "Kommandant"],
     "infantry": ["Infantry", "Infanterie", "Infanterie"],
     "tankers": ["Tankers", "Tankistes", "Panzerspieler"],
     "best_squads": ["Best squads", "Meilleures squads", "Beste Mannschaften"],
-    "offense": ["attack", "attaque", "angriff"],
-    "defense": ["defense", "défense", "verteidigung"],
+    "offense": ["attack", "attaque", "Angriff"],
+    "defense": ["defense", "défense", "Verteidigung"],
     "combat": ["combat", "combat", "kampf"],
     "support": ["support", "soutien", "unterstützung"],
     "ratio": ["ratio", "ratio", "verhältnis"],
-    "killrate": ["kills/min", "kills/min", "kills/min"],
+    "killrate": ["kills/min", "kills/min", "Kills/min"],
     "vip_until": ["VIP until", "VIP jusqu'au", "VIP bis"],
     "already_vip": ["Already VIP !", "Déjà VIP !", "bereits VIP !"]
 }
-
 
 # (End of configuration)
 # -----------------------------------------------------------------------------
@@ -158,10 +162,10 @@ def get_top(
         if sortkey(sample) != 0:
             if fourth_data == "":  # real_offdef, teamplay, ratio
                 if calltype == "squad":  # real_offdef, teamplay
-                    output = output + "■ "
-                output = output + f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sample[second_data]} ; {sample[third_data]}\n"
+                    output += "■ "
+                output += f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sample[second_data]} ; {sample[third_data]}\n"
             else:  # killrate (players only)
-                output = output + f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sortkey(sample)}\n"
+                output += f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sortkey(sample)}\n"
 
             # Squad members
             if (
@@ -176,7 +180,7 @@ def get_top(
                         and data.get('unit_name') == sample_vip['name']
                     ]
                     best_players_str = '; '.join(best_players_names)
-                    output = output + f"{best_players_str}\n"
+                    output += f"{best_players_str}\n"
 
         # Give VIP to players
         if (
@@ -185,15 +189,28 @@ def get_top(
             and VIP_WINNERS > 0
             and VIP_HOURS > 0  # Security : avoids to give a 0 hour VIP
             and server_status["current_players"] >= SEED_LIMIT
-            and iteration <= VIP_WINNERS
             and second_data != "kills"  # No VIP for top ratios and killrates
+            and iteration <= VIP_WINNERS
         ):
-            if is_vip_for_less_than_xh(rcon, sample['player_id'], VIP_HOURS):
-                output = output + give_xh_vip(rcon, sample['player_id'], VIP_HOURS)
-            else:
-                output = output + f"{TRANSL['already_vip'][LANG]}\n"
+            # No VIP for "entered at last second" commander
+            if (
+                sample['role'] == "armycommander"
+                and (
+                    (
+                        int(sample['offense']) + int(sample['defense'])
+                    ) / 20 < VIP_COMMANDER_MIN_PLAYTIME_MINS
+                    or int(sample['support']) < VIP_COMMANDER_MIN_SUPPORT_SCORE
+                )
+            ):
+                continue
 
-        iteration = iteration + 1
+            # Give VIP
+            if is_vip_for_less_than_xh(rcon, sample['player_id'], VIP_HOURS):
+                output += give_xh_vip(rcon, sample['player_id'], VIP_HOURS)
+            else:
+                output += f"{TRANSL['already_vip'][LANG]}\n"
+
+        iteration += 1
 
     return output
 
@@ -228,7 +245,7 @@ def message_all_players(rcon: Rcon, message: str):
                 player_name=player_name,
                 player_id=player_id,
                 message=message,
-                by="top_stats",
+                by="top_stats"
             )
         except Exception:
             pass
@@ -238,30 +255,25 @@ def ratio(obj):
     """
     returns (kills/deaths) score
     """
-    kills = int(obj["kills"])
     deaths = int(obj["deaths"])
     if deaths == 0:
         deaths = 1
-    computed_ratio = (kills / deaths)
-    return round(computed_ratio, 2)
+    computed_ratio = int(obj["kills"]) / deaths
+    return round(computed_ratio, 1)
 
 
 def real_offdef(obj):
     """
     returns a combined offense * (defense * OFFENSEDEFENSE_RATIO) score
     """
-    offense = int(obj["offense"])
-    defense = int(obj["defense"])
-    return int(offense * (defense * OFFENSEDEFENSE_RATIO))
+    return int(int(obj["offense"]) * (int(obj["defense"]) * OFFENSEDEFENSE_RATIO))
 
 
 def teamplay(obj):
     """
     returns a combined combat + (support * COMBATSUPPORT_RATIO) score
     """
-    combat = int(obj["combat"])
-    support = int(obj["support"])
-    return int(combat + support * COMBATSUPPORT_RATIO)
+    return int(int(obj["combat"]) + int(obj["support"]) * COMBATSUPPORT_RATIO)
 
 
 def killrate(obj):
@@ -275,7 +287,7 @@ def killrate(obj):
         return 0
     if offense == 0 and defense == 0:
         return 0
-    return round((kills / ((offense + defense) / 20)), 2)
+    return round((kills / ((offense + defense) / 20)), 1)
 
 
 def team_view_stats(rcon: Rcon):
@@ -334,7 +346,7 @@ def stats_display(
         top_squads_infantry_offdef: str,
         top_squads_infantry_teamplay: str,
         top_squads_armor_offdef: str,
-        top_squads_armor_teamplay: str,
+        top_squads_armor_teamplay: str
 ) -> str:
     """
     Format the message sent
@@ -433,7 +445,7 @@ def stats_gather(
         get_top(rcon, callmode, "squad", all_squads_infantry, teamplay, "name", "combat", "support", "", all_players_infantry),
         # Squads (armor)
         get_top(rcon, callmode, "squad", all_squads_armor, real_offdef, "name", "offense", "defense", "", all_players_armor),
-        get_top(rcon, callmode, "squad", all_squads_armor, teamplay, "name", "combat", "support", "", all_players_armor),
+        get_top(rcon, callmode, "squad", all_squads_armor, teamplay, "name", "combat", "support", "", all_players_armor)
     )
 
 
@@ -442,7 +454,7 @@ def stats_on_chat_command(
     struct_log: StructuredLogLineWithMetaData
 ):
     """
-    Sends actual top scores in an ingame message to the player who types the defined command in chat
+    Message actual top scores to the player who types the defined command in chat
     """
     chat_message: str|None = struct_log["sub_content"]
     if chat_message is None:
@@ -462,7 +474,7 @@ def stats_on_chat_command(
             top_squads_infantry_offdef,
             top_squads_infantry_teamplay,
             top_squads_armor_offdef,
-            top_squads_armor_teamplay,
+            top_squads_armor_teamplay
         ) = stats_gather(
             rcon = rcon,
             callmode = "chat"
@@ -477,7 +489,7 @@ def stats_on_chat_command(
             top_squads_infantry_offdef,
             top_squads_infantry_teamplay,
             top_squads_armor_offdef,
-            top_squads_armor_teamplay,
+            top_squads_armor_teamplay
         )
 
         rcon.message_player(
