@@ -71,7 +71,7 @@ and would easily get a VIP on each game.
     ```
 
 ## Config
-- Edit `/root/hll_rcon_tool/custom_tools/live_topstats.py` and set the parameters to your needs ;
+- Edit `/root/hll_rcon_tool/custom_tools/live_topstats.py` and set the parameters to fit your needs ;
 - Restart CRCON :
   ```shell
   cd /root/hll_rcon_tool
