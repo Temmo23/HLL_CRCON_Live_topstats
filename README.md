@@ -15,7 +15,8 @@ that displays and rewards top players, based on their scores.
   - commanders  
     - combat + (support * bonus)  
   - infantry players  
-    - offense * (defense * bonus)  
+    - offense * (defense * bonus)
+      : test
     - combat + (support * bonus)  
 - (for info only - no VIPs given)  
   - infantry players  
