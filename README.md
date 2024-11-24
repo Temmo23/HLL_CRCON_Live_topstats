@@ -13,11 +13,13 @@ There are 7 scores observed :
 - (top players will earn a VIP at game's end)  
   - (commanders) : combat + (support * bonus)  
   - (infantry players) : offense * (defense * bonus)  
-  - (infantry players) : combat + (support * bonus)
-- (for info only - no VIPs given)
+  - (infantry players) : combat + (support * bonus)  
+- (for info only - no VIPs given)  
   - (infantry players) : kills / deaths  
-  - (infantry players) : kills / minute
-  - (armor squads) : offense * (defense * bonus)
+  - (infantry players) : kills / minute  
+  - (infantry squads) : offense * (defense * bonus)  
+  - (infantry squads) : combat + (support * bonus)  
+  - (armor squads) : offense * (defense * bonus)  
   - (armor squads) : combat + (support * bonus)
 
 A multiplication bonus can be given to defense and support scores, if you want to reward teamplay more than individual skills.  
