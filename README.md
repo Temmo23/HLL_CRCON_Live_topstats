@@ -5,34 +5,21 @@ that displays and rewards top players, based on their scores.
 
 ![375489308-67943815-da9c-41ff-988c-eaaa2e0e64c2](https://github.com/user-attachments/assets/e44d0f07-23a8-4f62-87c4-742803c8be06)
 
-- The message may be called from `!top` chat command (configurable) or displayed at game's end.  
-- VIPs will only be given at match's end.
+- can be called anytime with `!top` chat command (configurable)  
+- will be displayed to all players at game's end.  
+- VIPs will only be given at game's end.
 
-Score values are agregated to reward the teamplay over the individual skills.
-In hope the players who play for their team will enter the server more often
-than the ones who play solo / never defend / don't earn support points.
+There are 4 scores observed :  
+- (players and squads) : offense * (defense * bonus) -> VIP reward  
+- (players and squads) : combat + (support * bonus) -> VIP reward  
+- (players only)       : kills / deaths (for info only - no VIP given)  
+- (players only)       : kills / minute (for info only - no VIP given)
 
-There are 3 scores observed :
-- (players and squads) offense * (defense * defense bonus)
-- (players and squads) combat + (support * support bonus)
-- (players only) kills / deaths ratio
-- (players only) kills / min ratio
+A bonus can be given to defense and support scores, if you want to reward teamplay more than individual skills.  
+Doing so will ensure the teamplayers will enter the server more often than CODdies.
 
-Only the players that enter the top of the two first scores can be rewarded with VIP.
-
-As 'offense' and 'defense' values are based on the time the player spend on map
-(20 points per minute), 'defense' value can be multiplied for a bonus.
-So if two players spend the same time in game, the defender will be rewarded
-before the one that mostly attacks.
-It's a multiplicated value, so players will have to do both to enter the top,
-thus avoiding to grant VIP to those that stay purposely at HQ the whole game.
-
-Same for 'combat' and 'support' : commanders, officers, supports, engineers
-and medics are rewarded as the ones who build and consolidate the teamplay.
-So support value can be multiplied for a bonus.
-
-Tankers don't get any VIP, as they (normally) have a huge combat score
-and would easily get a VIP on each game.
+- Tankers don't get any VIP, as they usually have a huge combat score and would easily get a VIP on each game.  
+- Players must gain offense AND defense points to enter the top, thus to avoid giving VIPs to those who purposely stay AFK in HQs.
 
 > [!NOTE]
 > The shell commands given below assume your CRCON is installed in `/root/hll_rcon_tool`.  
