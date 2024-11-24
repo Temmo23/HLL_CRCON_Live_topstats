@@ -12,12 +12,12 @@ that displays and rewards top players, based on their scores.
 
 ## Observed scores
 
-- (top players will earn a VIP at game's end)  
+- (top players will earn a VIP at game's end)
     - commanders
         - combat + (support * bonus)
     - infantry players
         - offense * (defense * bonus)
-        - combat + (support * bonus)  
+        - combat + (support * bonus)
 - (for info only - no VIPs given)
     - infantry players
         - kills / deaths
