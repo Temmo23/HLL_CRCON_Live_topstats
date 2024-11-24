@@ -1,5 +1,5 @@
 """
-live_topstats
+live_topstats.py
 
 A plugin for HLL CRCON (see : https://github.com/MarechJ/hll_rcon_tool)
 that displays and rewards top players, based on their scores.
@@ -12,6 +12,7 @@ Feel free to use/modify/distribute, as long as you keep this note in your code
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from rcon.rcon import Rcon, StructuredLogLineWithMetaData
+from rcon.utils import get_server_number
 
 
 # Configuration (you must review/change these !)
@@ -21,9 +22,15 @@ from rcon.rcon import Rcon, StructuredLogLineWithMetaData
 # Available : 0 for english, 1 for french, 2 for german
 LANG = 0
 
+# Can be enabled/disabled on your different game servers
+# ie : ["1"]           = enabled only on server 1
+#      ["1", "2"]      = enabled on servers 1 and 2
+#      ["2", "4", "5"] = enabled on servers 2, 4 and 5
+ENABLE_ON_SERVERS = ["1"]
+
 # Gives a bonus to defense
-# ie : 1.5 means "defense counts 1.5x more than offense"
-# 0 to disable the bonus
+# ie : 1.5 = "defense counts 1.5x more than offense"
+#        0 = disable the bonus
 # Use 0 < x < 1 values (ie : 0.75) to set a malus
 OFFENSEDEFENSE_RATIO = 1.5
 
@@ -67,7 +74,7 @@ TOPS_MATCHEND_DETAIL_SQUADS = 1
 # 0 to disable
 VIP_WINNERS = 1
 
-# Avoid to give a VIP to an "entered at last second" commander
+# Avoid to give a VIP to a a "entered at last second" commander
 VIP_COMMANDER_MIN_PLAYTIME_MINS = 20
 VIP_COMMANDER_MIN_SUPPORT_SCORE = 1000
 
@@ -456,15 +463,66 @@ def stats_on_chat_command(
     """
     Message actual top scores to the player who types the defined command in chat
     """
-    chat_message: str|None = struct_log["sub_content"]
-    if chat_message is None:
-        return
+    # Make sure the script is enabled on actual server
+    server_number = get_server_number()
+    if server_number in ENABLE_ON_SERVERS:
 
-    player_id: str|None = struct_log["player_id_1"]
-    if player_id is None:
-        return
+        chat_message: str|None = struct_log["sub_content"]
+        if chat_message is None:
+            return
 
-    if struct_log["sub_content"] == CHAT_COMMAND:
+        player_id: str|None = struct_log["player_id_1"]
+        if player_id is None:
+            return
+
+        if struct_log["sub_content"] == CHAT_COMMAND:
+            (
+                top_commanders_teamplay,
+                top_infantry_offdef,
+                top_infantry_teamplay,
+                top_infantry_ratio,
+                top_infantry_killrate,
+                top_squads_infantry_offdef,
+                top_squads_infantry_teamplay,
+                top_squads_armor_offdef,
+                top_squads_armor_teamplay
+            ) = stats_gather(
+                rcon = rcon,
+                callmode = "chat"
+            )
+
+            message = stats_display(
+                top_commanders_teamplay,
+                top_infantry_offdef,
+                top_infantry_teamplay,
+                top_infantry_ratio,
+                top_infantry_killrate,
+                top_squads_infantry_offdef,
+                top_squads_infantry_teamplay,
+                top_squads_armor_offdef,
+                top_squads_armor_teamplay
+            )
+
+            rcon.message_player(
+                player_id=player_id,
+                message=message,
+                by="top_stats",
+                save_message=False
+            )
+
+
+def stats_on_match_end(
+    rcon: Rcon,
+    struct_log: StructuredLogLineWithMetaData
+):
+    """
+    Sends final top players in an ingame message to all the players
+    Gives VIP to the top players as configured
+    """
+    # Make sure the script is enabled on actual server
+    server_number = get_server_number()
+    if server_number in ENABLE_ON_SERVERS:
+
         (
             top_commanders_teamplay,
             top_infantry_offdef,
@@ -474,10 +532,10 @@ def stats_on_chat_command(
             top_squads_infantry_offdef,
             top_squads_infantry_teamplay,
             top_squads_armor_offdef,
-            top_squads_armor_teamplay
+            top_squads_armor_teamplay,
         ) = stats_gather(
             rcon = rcon,
-            callmode = "chat"
+            callmode = "matchend"
         )
 
         message = stats_display(
@@ -489,50 +547,8 @@ def stats_on_chat_command(
             top_squads_infantry_offdef,
             top_squads_infantry_teamplay,
             top_squads_armor_offdef,
-            top_squads_armor_teamplay
+            top_squads_armor_teamplay,
         )
 
-        rcon.message_player(
-            player_id=player_id,
-            message=message,
-            by="top_stats",
-            save_message=False
-        )
-
-
-def stats_on_match_end(
-    rcon: Rcon,
-    struct_log: StructuredLogLineWithMetaData
-):
-    """
-    Sends final top players in an ingame message to all the players
-    Gives VIP to the top players as configured
-    """
-    (
-        top_commanders_teamplay,
-        top_infantry_offdef,
-        top_infantry_teamplay,
-        top_infantry_ratio,
-        top_infantry_killrate,
-        top_squads_infantry_offdef,
-        top_squads_infantry_teamplay,
-        top_squads_armor_offdef,
-        top_squads_armor_teamplay,
-    ) = stats_gather(
-        rcon = rcon,
-        callmode = "matchend"
-    )
-
-    message = stats_display(
-        top_commanders_teamplay,
-        top_infantry_offdef,
-        top_infantry_teamplay,
-        top_infantry_ratio,
-        top_infantry_killrate,
-        top_squads_infantry_offdef,
-        top_squads_infantry_teamplay,
-        top_squads_armor_offdef,
-        top_squads_armor_teamplay,
-    )
-
-    message_all_players(rcon, message)
+        if message != f"{TRANSL['nostatsyet'][LANG]}":
+            message_all_players(rcon, message)
