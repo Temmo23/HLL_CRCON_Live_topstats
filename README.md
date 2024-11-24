@@ -8,7 +8,7 @@ that displays and rewards top players, based on their scores.
 ## Features
 - can be called anytime with `!top` chat command (configurable)  
 - will be displayed to all players at game's end.  
-- VIPs will only be given at game's end.
+- You can choose to give VIPs at game's end (you can define the number of top players that will receive one, and it's duration).
 
 ## Observed scores
 
