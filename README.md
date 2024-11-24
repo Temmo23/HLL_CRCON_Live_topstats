@@ -89,7 +89,7 @@ Doing so will ensure the teamplayers will enter the server more often than CODdi
 - `/root/hll_rcon_tool/rcon/hooks.py`
 
 ⚠️ This plugin requires a modification of the `/root/hll_rcon_tool/rcon/hooks.py` file, which originates from the official CRCON depot.  
-If any CRCON upgrade implies updating this file, the usual upgrade procedure, as given in official CRCON instructions, will **FAIL**.  
+If any CRCON upgrade implies updating this file, the usual upgrade procedure, as given in official CRCON instructions, will ==FAIL==.  
 To successfully upgrade your CRCON, you'll have to revert the changes back, then reinstall this plugin.  
 To revert to the original file :  
 ```shell
