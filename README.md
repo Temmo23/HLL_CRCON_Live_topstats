@@ -5,12 +5,12 @@ that displays and rewards top players, based on their scores.
 
 ![375489308-67943815-da9c-41ff-988c-eaaa2e0e64c2](https://github.com/user-attachments/assets/e44d0f07-23a8-4f62-87c4-742803c8be06)
 
-### Features
+## Features
 - can be called anytime with `!top` chat command (configurable)  
 - will be displayed to all players at game's end.  
 - VIPs will only be given at game's end.
 
-### There are 9 scores observed :
+## Observed scores
 - (top players will earn a VIP at game's end)
   - commanders  
     - combat + (support * bonus)  
