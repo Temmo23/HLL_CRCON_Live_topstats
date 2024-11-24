@@ -36,6 +36,8 @@ Tankers don't get any VIP, as they usually have a huge combat score and would ea
 
 Players must gain offense AND defense points to enter the top, thus to avoid giving VIPs to those who purposely stay AFK in HQs.
 
+## Install
+
 > [!NOTE]
 > The shell commands given below assume your CRCON is installed in `/root/hll_rcon_tool`.  
 > You may have installed your CRCON in a different folder.  
@@ -46,7 +48,6 @@ Players must gain offense AND defense points to enter the top, thus to avoid giv
 >   
 > If so, you'll have to adapt the commands below accordingly.
 
-## Install
 - Log into your CRCON host machine using SSH and enter these commands (one line at at time) :  
 
   First part  
