@@ -12,26 +12,25 @@ that displays and rewards top players, based on their scores.
 
 ## Observed scores
 - (top players will earn a VIP at game's end)
-  - commanders  
-    - combat + (support * bonus [^1])  
-  - infantry players  
-    - offense * (defense * bonus [^1])  
-    - combat + (support * bonus [^1])  
-- (for info only - no VIPs given)  
-  - infantry players  
-    - kills / deaths  
-    - kills / minute  
-  - infantry squads  
-    - offense * (defense * bonus)  
-    - combat + (support * bonus)  
-  - armor squads  
-    - offense * (defense * bonus)  
+  - commanders
+    - combat + (support * bonus)
+  - infantry players
+    - offense * (defense * bonus)
+    - combat + (support * bonus)
+- (for info only - no VIPs given)
+  - infantry players
+    - kills / deaths
+    - kills / minute
+  - infantry squads
+    - offense * (defense * bonus)
+    - combat + (support * bonus)
+  - armor squads
+    - offense * (defense * bonus)
     - combat + (support * bonus)
 
-[^1] A multiplication bonus can be given to defense and support scores, if you want to reward teamplay more than individual skills.  
+- A multiplication bonus can be given to defense and support scores, if you want to reward teamplay more than individual skills.  
 Doing so will ensure the teamplayers will enter the server more often than CODdies.
-
-- Tankers don't get any VIP, as they usually have a huge combat score and would easily get a VIP on each game.  
+- Tankers don't get any VIP, as they usually have a huge combat score and would easily get a VIP on each game.
 - Players must gain offense AND defense points to enter the top, thus to avoid giving VIPs to those who purposely stay AFK in HQs.
 
 > [!NOTE]
