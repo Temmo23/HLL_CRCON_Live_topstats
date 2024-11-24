@@ -9,7 +9,7 @@ that displays and rewards top players, based on their scores.
 - will be displayed to all players at game's end.  
 - VIPs will only be given at game's end.
 
-There are 7 scores observed :  
+There are 9 scores observed :  
 - (top players will earn a VIP at game's end)
   - commanders  
     - combat + (support * bonus)  
