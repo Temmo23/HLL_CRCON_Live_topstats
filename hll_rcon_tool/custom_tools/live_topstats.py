@@ -29,9 +29,12 @@ LANG = 0
 ENABLE_ON_SERVERS = ["1"]
 
 # Gives a bonus to defense
-# ie : 1.5 = "defense counts 1.5x more than offense"
-#        0 = disable the bonus
-# Use 0 < x < 1 values (ie : 0.75) to set a malus
+# ie : 1.5  = defense counts 1.5x more than offense (defense bonus)
+#      1    = bonus disabled
+#      0.67 = offense counts 1.5x more than defense (defense malus)
+#      0.5  = offense counts 2x more than defense (defense malus)
+#      0    = bonus disabled
+# Any negative value will be converted to positive (ie : -1.5 -> 1.5)
 OFFENSEDEFENSE_RATIO = 1.5
 
 # Gives a bonus to support
@@ -258,7 +261,7 @@ def message_all_players(rcon: Rcon, message: str):
             pass
 
 
-def ratio(obj):
+def ratio(obj) -> float:
     """
     returns (kills/deaths) score
     """
@@ -269,21 +272,25 @@ def ratio(obj):
     return round(computed_ratio, 1)
 
 
-def real_offdef(obj):
+def real_offdef(obj) -> int:
     """
     returns a combined offense * (defense * OFFENSEDEFENSE_RATIO) score
     """
-    return int(int(obj["offense"]) * (int(obj["defense"]) * OFFENSEDEFENSE_RATIO))
+    if OFFENSEDEFENSE_RATIO == 0:
+        return int(int(obj["offense"]) * int(obj["defense"]))
+    return int(int(obj["offense"]) * (int(obj["defense"]) * abs(OFFENSEDEFENSE_RATIO)))
 
 
-def teamplay(obj):
+def teamplay(obj) -> int:
     """
     returns a combined combat + (support * COMBATSUPPORT_RATIO) score
     """
-    return int(int(obj["combat"]) + int(obj["support"]) * COMBATSUPPORT_RATIO)
+    if COMBATSUPPORT_RATIO == 0:
+        return int(int(obj["combat"]) + int(obj["support"]))    
+    return int(int(obj["combat"]) + int(obj["support"]) * abs(COMBATSUPPORT_RATIO))
 
 
-def killrate(obj):
+def killrate(obj) -> float:
     """
     returns kills/playtime in minutes
     """
@@ -358,6 +365,14 @@ def stats_display(
     """
     Format the message sent
     """
+    if OFFENSEDEFENSE_RATIO == 0:
+        offensedefense_ratio = 1
+    else:
+        offensedefense_ratio = abs(OFFENSEDEFENSE_RATIO)
+    if COMBATSUPPORT_RATIO == 0:
+        combatsupport_ratio = 1
+    else:
+        combatsupport_ratio = abs(COMBATSUPPORT_RATIO)
     message = ""
     # players
     if (
@@ -372,7 +387,7 @@ def stats_display(
         if len(top_commanders_teamplay) != 0:
             message += (
                 f"▓ {TRANSL['armycommander'][LANG]} ▓\n\n"
-                f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(COMBATSUPPORT_RATIO)}) ─\n{top_commanders_teamplay}\n"
+                f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(combatsupport_ratio)}) ─\n{top_commanders_teamplay}\n"
             )
         # players / infantry
         if (
@@ -383,9 +398,9 @@ def stats_display(
         ):
             message += f"▓ {TRANSL['infantry'][LANG]} ▓\n\n"
             if len(top_infantry_offdef) != 0:
-                message += f"─ {TRANSL['offense'][LANG]} * ({TRANSL['defense'][LANG]} * {str(OFFENSEDEFENSE_RATIO)}) ─\n{top_infantry_offdef}\n"
+                message += f"─ {TRANSL['offense'][LANG]} * ({TRANSL['defense'][LANG]} * {str(offensedefense_ratio)}) ─\n{top_infantry_offdef}\n"
             if len(top_infantry_teamplay) != 0:
-                message += f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(COMBATSUPPORT_RATIO)}) ─\n{top_infantry_teamplay}\n"
+                message += f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(combatsupport_ratio)}) ─\n{top_infantry_teamplay}\n"
             if len(top_infantry_ratio) != 0:
                 message += f"─ {TRANSL['ratio'][LANG]} ─\n{top_infantry_ratio}\n"
             if len(top_infantry_killrate) != 0:
@@ -402,16 +417,16 @@ def stats_display(
         if len(top_squads_infantry_offdef) != 0 or len(top_squads_infantry_teamplay) != 0:
             message += f"▓ {TRANSL['infantry'][LANG]} ▓\n\n"
             if len(top_squads_infantry_offdef) != 0:
-                message += f"─ {TRANSL['offense'][LANG]} * ({TRANSL['defense'][LANG]} * {str(OFFENSEDEFENSE_RATIO)}) ─\n{top_squads_infantry_offdef}\n"
+                message += f"─ {TRANSL['offense'][LANG]} * ({TRANSL['defense'][LANG]} * {str(offensedefense_ratio)}) ─\n{top_squads_infantry_offdef}\n"
             if len(top_squads_infantry_teamplay) != 0:
-                message += f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(COMBATSUPPORT_RATIO)}) ─\n{top_squads_infantry_teamplay}\n"
+                message += f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(combatsupport_ratio)}) ─\n{top_squads_infantry_teamplay}\n"
         # squads / armor
         if len(top_squads_armor_offdef) != 0 or len(top_squads_armor_teamplay) != 0:
             message += f"▓ {TRANSL['tankers'][LANG]} ▓\n\n"
             if len(top_squads_armor_offdef) != 0:
-                message += f"─ {TRANSL['offense'][LANG]} * ({TRANSL['defense'][LANG]} * {str(OFFENSEDEFENSE_RATIO)}) ─\n{top_squads_armor_offdef}\n"
+                message += f"─ {TRANSL['offense'][LANG]} * ({TRANSL['defense'][LANG]} * {str(offensedefense_ratio)}) ─\n{top_squads_armor_offdef}\n"
             if len(top_squads_armor_teamplay) != 0:
-                message += f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(COMBATSUPPORT_RATIO)}) ─\n{top_squads_armor_teamplay}\n"
+                message += f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(combatsupport_ratio)}) ─\n{top_squads_armor_teamplay}\n"
 
     # If no data yet
     if len(message) == 0:
