@@ -39,6 +39,16 @@ So support value can be multiplied for a bonus.
 Tankers don't get any VIP, as they (normally) have a huge combat score
 and would easily get a VIP on each game.
 
+> [!NOTE]
+> The shell commands given below assume your CRCON is installed in `/root/hll_rcon_tool`.  
+> You may have installed your CRCON in a different folder.  
+>   
+> Some Ubuntu Linux distributions disable the `root` user and `/root` folder by default.  
+> In these, your default user is `ubuntu`, using the `/home/ubuntu` folder.  
+> You should then find your CRCON in `/home/ubuntu/hll_rcon_tool`.  
+>   
+> If so, you'll have to adapt the commands below accordingly.
+
 ## Install
 - Copy `restart.sh` in CRCON's root (`/root/hll_rcon_tool/`)
 - Create `custom_tools` folder in CRCON's root (`/root/hll_rcon_tool/`)
