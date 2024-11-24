@@ -29,10 +29,10 @@ that displays and rewards top players, based on their scores.
         - offense * (defense * bonus)
         - combat + (support * bonus)
 
-- A multiplication bonus can be given to defense and support scores, if you want to reward teamplay more than individual skills.  
-Doing so will ensure the teamplayers will enter the server more often than CODdies.  
-- Tankers don't get any VIP, as they usually have a huge combat score and would easily get a VIP on each game.  
-- Players must gain offense AND defense points to enter the top, thus to avoid giving VIPs to those who purposely stay AFK in HQs.
+A multiplication bonus can be given to defense and support scores, if you want to reward teamplay more than individual skills.  
+Doing so will ensure the teamplayers will enter the server more often than CODdies.
+Tankers don't get any VIP, as they usually have a huge combat score and would easily get a VIP on each game.
+Players must gain offense AND defense points to enter the top, thus to avoid giving VIPs to those who purposely stay AFK in HQs.
 
 > [!NOTE]
 > The shell commands given below assume your CRCON is installed in `/root/hll_rcon_tool`.  
