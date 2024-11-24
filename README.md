@@ -10,12 +10,17 @@ that displays and rewards top players, based on their scores.
 - VIPs will only be given at game's end.
 
 There are 4 scores observed :  
-- (players and squads) : offense * (defense * bonus) -> VIP reward  
-- (players and squads) : combat + (support * bonus) -> VIP reward  
-- (players only)       : kills / deaths (for info only - no VIP given)  
-- (players only)       : kills / minute (for info only - no VIP given)
+- (top players will earn a VIP at game's end)  
+  - (commanders) : combat + (support * bonus)  
+  - (infantry players) : offense * (defense * bonus)  
+  - (infantry players) : combat + (support * bonus)
+- (for info only - no VIPs given)
+  - (infantry players) : kills / deaths  
+  - (infantry players) : kills / minute
+  - (armor squads) : offense * (defense * bonus)
+  - (armor squads) : combat + (support * bonus)
 
-A bonus can be given to defense and support scores, if you want to reward teamplay more than individual skills.  
+A multiplication bonus can be given to defense and support scores, if you want to reward teamplay more than individual skills.  
 Doing so will ensure the teamplayers will enter the server more often than CODdies.
 
 - Tankers don't get any VIP, as they usually have a huge combat score and would easily get a VIP on each game.  
