@@ -216,7 +216,7 @@ def get_top(
 
             # Give VIP
             if is_vip_for_less_than_xh(rcon, sample['player_id'], VIP_HOURS):
-                output += give_xh_vip(rcon, sample['player_id'], VIP_HOURS)
+                output += give_xh_vip(rcon, sample['player_id'], sample['name'], VIP_HOURS)
             else:
                 output += f"{TRANSL['already_vip'][LANG]}\n"
 
@@ -225,15 +225,18 @@ def get_top(
     return output
 
 
-def give_xh_vip(rcon: Rcon, player_id: str, hours_awarded: int):
+def give_xh_vip(rcon: Rcon, player_id: str, player_name: str, hours_awarded: int):
     """
         Gives a x hours VIP
         Returns a str that announces the VIP expiration (local) time
     """
+    # Kombiniert den Spielernamen mit "top_player"
+    combined_name = f"{player_name} Top-Player"
+    
     # Gives X hours VIP
     now_plus_xh = datetime.now(timezone.utc) + timedelta(hours=hours_awarded)
     now_plus_xh_vip_formatted = now_plus_xh.strftime('%Y-%m-%dT%H:%M:%SZ')
-    rcon.add_vip(player_id, "top_player", now_plus_xh_vip_formatted)
+    rcon.add_vip(player_id, combined_name, now_plus_xh_vip_formatted)
 
     # Returns a string giving the new expiration date in local time
     now_plus_xh_utc = now_plus_xh.replace(tzinfo=ZoneInfo("UTC"))
