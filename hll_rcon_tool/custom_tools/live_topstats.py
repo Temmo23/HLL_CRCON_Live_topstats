@@ -4,7 +4,6 @@ live_topstats.py
 A plugin for HLL CRCON (see : https://github.com/MarechJ/hll_rcon_tool)
 that displays and rewards top players, based on their scores.
 
-Source : https://github.com/ElGuillermo
 
 Feel free to use/modify/distribute, as long as you keep this note in your code
 """
@@ -65,7 +64,7 @@ TOPS_MATCHEND = 3
 
 # Squads : display squad members for the nth top squads
 # Prefer 0 for a shorter message
-TOPS_MATCHEND_DETAIL_SQUADS = 1
+TOPS_MATCHEND_DETAIL_SQUADS = 0
 
 # Give VIPs at match's end to the best nth top in each :
 # - commander (best combat + (support * COMBATSUPPORT_RATIO))
@@ -78,21 +77,21 @@ TOPS_MATCHEND_DETAIL_SQUADS = 1
 VIP_WINNERS = 1
 
 # Avoid to give a VIP to a a "entered at last second" commander
-VIP_COMMANDER_MIN_PLAYTIME_MINS = 20
-VIP_COMMANDER_MIN_SUPPORT_SCORE = 1000
+VIP_COMMANDER_MIN_PLAYTIME_MINS = 40
+VIP_COMMANDER_MIN_SUPPORT_SCORE = 2000
 
 # VIPs will be given if there is at least this number of players ingame
 # 0 to disable (VIP will always be given)
 # Recommended : the same number as your seed limit
-SEED_LIMIT = 40
+SEED_LIMIT = 70
 
 # How many VIP hours awarded ?
 # If the player already has a VIP that ends AFTER this delay, VIP won't be given.
-VIP_HOURS = 24
+VIP_HOURS = 12
 
 # VIP announce : local time
 # Find you local timezone : https://utctime.info/timezone/
-LOCAL_TIMEZONE = "Europe/Paris"
+LOCAL_TIMEZONE = "Brazil/East"
 LOCAL_TIME_FORMAT = "%d/%m/%Y à %Hh%M"
 
 
@@ -102,21 +101,21 @@ LOCAL_TIME_FORMAT = "%d/%m/%Y à %Hh%M"
 
 TRANSL = {
     "nostatsyet": ["No stats yet", "Pas de stats", "noch keine Statistiken", "Sem estatísticas ainda"],
-    "allies": ["all", "all", "Allierte", "aliados"],
-    "axis": ["axi", "axe", "Achsenmächte", "eixo"],
-    "best_players": ["Best players", "Meilleurs joueurs", "Beste Spieler", "Melhores jogadores"],
-    "armycommander": ["Commander", "Commandant", "Kommandant", "Comandante"],
-    "infantry": ["Infantry", "Infanterie", "Infanterie", "Infantaria"],
-    "tankers": ["Tankers", "Tankistes", "Panzerspieler", "Tanqueiros"],
-    "best_squads": ["Best squads", "Meilleures squads", "Beste Mannschaften", "Melhores esquadrões"],
-    "offense": ["attack", "attaque", "Angriff", "ataque"],
-    "defense": ["defense", "défense", "Verteidigung", "defesa"],
-    "combat": ["combat", "combat", "Kampf", "combate"],
-    "support": ["support", "soutien", "Unterstützung", "suporte"],
-    "ratio": ["ratio", "ratio", "Verhältnis", "proporção"],
-    "killrate": ["kills/min", "kills/min", "Kills/min", "abates/min"],
+    "allies": ["all", "all", "Allierte", "ALIADOS"],
+    "axis": ["axi", "axe", "Achsenmächte", "EIXO"],
+    "best_players": ["Best players", "Meilleurs joueurs", "Beste Spieler", "TOP »BAIN« PLAYER"],
+    "armycommander": ["Commander", "Commandant", "Kommandant", "COMANDANTE"],
+    "infantry": ["Infantry", "Infanterie", "Infanterie", "INFANTARIA"],
+    "tankers": ["Tankers", "Tankistes", "Panzerspieler", "TANKISTAS"],
+    "best_squads": ["Best squads", "Meilleures squads", "Beste Mannschaften", "MELHORES ESQUADRÕES"],
+    "offense": ["attack", "attaque", "Angriff", "ATAQUE"],
+    "defense": ["defense", "défense", "Verteidigung", "DEFESA"],
+    "combat": ["combat", "combat", "Kampf", "(P) COMBATE"],
+    "support": ["support", "soutien", "Unterstützung", "(P) SUPORTE"],
+    "ratio": ["ratio", "ratio", "Verhältnis", "KILL/MORTES"],
+    "killrate": ["kills/min", "kills/min", "Kills/min", "KILL/MINUTO"],
     "vip_until": ["VIP until", "VIP jusqu'au", "VIP bis", "VIP até"],
-    "already_vip": ["Already VIP !", "Déjà VIP !", "bereits VIP !", "Já é VIP!"]
+    "already_vip": ["Already VIP !", "Déjà VIP !", "bereits VIP !", "PLAYER VIP!"]
 }
 
 # (End of configuration)
@@ -146,10 +145,7 @@ def get_top(
     data_bucket: list,
     sortkey,
     first_data: str,
-    second_data: str,
-    third_data: str,
-    fourth_data: str,
-    squadtype_allplayers : list  # Observed squad type ("infantry" or "tankers") players sats
+    squadtype_allplayers: list  # Observed squad type ("infantry" or "tankers") players sats
 ) -> str:
     """
     Returns a string, listing top players or squads, as calculated by sortkey
@@ -170,12 +166,9 @@ def get_top(
     iteration = 1
     for sample in sorted_data[:tops_limit]:
         if sortkey(sample) != 0:
-            if fourth_data == "":  # real_offdef, teamplay, ratio
-                if calltype == "squad":  # real_offdef, teamplay
-                    output += "■ "
-                output += f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sample[second_data]} ; {sample[third_data]}\n"
-            else:  # killrate (players only)
-                output += f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sortkey(sample)}\n"
+            if calltype == "squad":  # real_offdef, teamplay
+                output += "■ "
+            output += f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sortkey(sample)}\n"
 
             # Squad members
             if (
@@ -199,7 +192,6 @@ def get_top(
             and VIP_WINNERS > 0
             and VIP_HOURS > 0  # Security : avoids to give a 0 hour VIP
             and server_status["current_players"] >= SEED_LIMIT
-            and second_data != "kills"  # No VIP for top ratios and killrates
             and iteration <= VIP_WINNERS
         ):
             # No VIP for "entered at last second" commander
@@ -368,14 +360,6 @@ def stats_display(
     """
     Format the message sent
     """
-    if OFFENSEDEFENSE_RATIO == 0:
-        offensedefense_ratio = 1
-    else:
-        offensedefense_ratio = abs(OFFENSEDEFENSE_RATIO)
-    if COMBATSUPPORT_RATIO == 0:
-        combatsupport_ratio = 1
-    else:
-        combatsupport_ratio = abs(COMBATSUPPORT_RATIO)
     message = ""
     # players
     if (
@@ -390,7 +374,7 @@ def stats_display(
         if len(top_commanders_teamplay) != 0:
             message += (
                 f"▓ {TRANSL['armycommander'][LANG]} ▓\n\n"
-                f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(combatsupport_ratio)}) ─\n{top_commanders_teamplay}\n"
+                f"─ {TRANSL['combat'][LANG]} + {TRANSL['support'][LANG]} ─\n{top_commanders_teamplay}\n"
             )
         # players / infantry
         if (
@@ -401,9 +385,9 @@ def stats_display(
         ):
             message += f"▓ {TRANSL['infantry'][LANG]} ▓\n\n"
             if len(top_infantry_offdef) != 0:
-                message += f"─ {TRANSL['offense'][LANG]} * ({TRANSL['defense'][LANG]} * {str(offensedefense_ratio)}) ─\n{top_infantry_offdef}\n"
+                message += f"─ {TRANSL['offense'][LANG]} / {TRANSL['defense'][LANG]} ─\n{top_infantry_offdef}\n"
             if len(top_infantry_teamplay) != 0:
-                message += f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(combatsupport_ratio)}) ─\n{top_infantry_teamplay}\n"
+                message += f"─ {TRANSL['combat'][LANG]} / {TRANSL['support'][LANG]} ─\n{top_infantry_teamplay}\n"
             if len(top_infantry_ratio) != 0:
                 message += f"─ {TRANSL['ratio'][LANG]} ─\n{top_infantry_ratio}\n"
             if len(top_infantry_killrate) != 0:
@@ -420,16 +404,16 @@ def stats_display(
         if len(top_squads_infantry_offdef) != 0 or len(top_squads_infantry_teamplay) != 0:
             message += f"▓ {TRANSL['infantry'][LANG]} ▓\n\n"
             if len(top_squads_infantry_offdef) != 0:
-                message += f"─ {TRANSL['offense'][LANG]} * ({TRANSL['defense'][LANG]} * {str(offensedefense_ratio)}) ─\n{top_squads_infantry_offdef}\n"
+                message += f"─ {TRANSL['offense'][LANG]} / {TRANSL['defense'][LANG]} ─\n{top_squads_infantry_offdef}\n"
             if len(top_squads_infantry_teamplay) != 0:
-                message += f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(combatsupport_ratio)}) ─\n{top_squads_infantry_teamplay}\n"
+                message += f"─ {TRANSL['combat'][LANG]} / {TRANSL['support'][LANG]} ─\n{top_squads_infantry_teamplay}\n"
         # squads / armor
         if len(top_squads_armor_offdef) != 0 or len(top_squads_armor_teamplay) != 0:
             message += f"▓ {TRANSL['tankers'][LANG]} ▓\n\n"
             if len(top_squads_armor_offdef) != 0:
-                message += f"─ {TRANSL['offense'][LANG]} * ({TRANSL['defense'][LANG]} * {str(offensedefense_ratio)}) ─\n{top_squads_armor_offdef}\n"
+                message += f"─ {TRANSL['offense'][LANG]} / {TRANSL['defense'][LANG]} ─\n{top_squads_armor_offdef}\n"
             if len(top_squads_armor_teamplay) != 0:
-                message += f"─ {TRANSL['combat'][LANG]} + ({TRANSL['support'][LANG]} * {str(combatsupport_ratio)}) ─\n{top_squads_armor_teamplay}\n"
+                message += f"─ {TRANSL['combat'][LANG]} / {TRANSL['support'][LANG]} ─\n{top_squads_armor_teamplay}\n"
 
     # If no data yet
     if len(message) == 0:
@@ -459,18 +443,18 @@ def stats_gather(
 
     return (
         # Players (commanders)
-        get_top(rcon, callmode, "player", all_commanders, teamplay, "name", "combat", "support", "", all_commanders),
+        get_top(rcon, callmode, "player", all_commanders, teamplay, "name", all_commanders),
         # Players (infantry)
-        get_top(rcon, callmode, "player", all_players_infantry, real_offdef, "name", "offense", "defense", "", all_players_infantry),
-        get_top(rcon, callmode, "player", all_players_infantry, teamplay, "name", "combat", "support", "", all_players_infantry),
-        get_top(rcon, callmode, "player", all_players_infantry, ratio, "name", "kills", "deaths", "", all_players_infantry),
-        get_top(rcon, callmode, "player", all_players_infantry, killrate, "name", "kills", "offense", "defense", all_players_infantry),
+        get_top(rcon, callmode, "player", all_players_infantry, real_offdef, "name", all_players_infantry),
+        get_top(rcon, callmode, "player", all_players_infantry, teamplay, "name", all_players_infantry),
+        get_top(rcon, callmode, "player", all_players_infantry, ratio, "name", all_players_infantry),
+        get_top(rcon, callmode, "player", all_players_infantry, killrate, "name", all_players_infantry),
         # Squads (infantry)
-        get_top(rcon, callmode, "squad", all_squads_infantry, real_offdef, "name", "offense", "defense", "", all_players_infantry),
-        get_top(rcon, callmode, "squad", all_squads_infantry, teamplay, "name", "combat", "support", "", all_players_infantry),
+        get_top(rcon, callmode, "squad", all_squads_infantry, real_offdef, "name", all_players_infantry),
+        get_top(rcon, callmode, "squad", all_squads_infantry, teamplay, "name", all_players_infantry),
         # Squads (armor)
-        get_top(rcon, callmode, "squad", all_squads_armor, real_offdef, "name", "offense", "defense", "", all_players_armor),
-        get_top(rcon, callmode, "squad", all_squads_armor, teamplay, "name", "combat", "support", "", all_players_armor)
+        get_top(rcon, callmode, "squad", all_squads_armor, real_offdef, "name", all_players_armor),
+        get_top(rcon, callmode, "squad", all_squads_armor, teamplay, "name", all_players_armor)
     )
 
 
@@ -570,3 +554,28 @@ def stats_on_match_end(
 
         if message != f"{TRANSL['nostatsyet'][LANG]}":
             message_all_players(rcon, message)
+            # Notify players who received VIP
+            for player in top_commanders_teamplay.split('\n')[:VIP_WINNERS]:
+                if player:
+                    player_name = player.split(' ')[0]
+                    rcon.message_player(
+                        player_name=player_name,
+                        message=f"Parabéns {player_name}, você ganhou VIP por {VIP_HOURS} horas!",
+                        by="top_stats"
+                    )
+            for player in top_infantry_offdef.split('\n')[:VIP_WINNERS]:
+                if player:
+                    player_name = player.split(' ')[0]
+                    rcon.message_player(
+                        player_name=player_name,
+                        message=f"Parabéns {player_name}, você ganhou VIP por {VIP_HOURS} horas!",
+                        by="top_stats"
+                    )
+            for player in top_infantry_teamplay.split('\n')[:VIP_WINNERS]:
+                if player:
+                    player_name = player.split(' ')[0]
+                    rcon.message_player(
+                        player_name=player_name,
+                        message=f"Parabéns {player_name}, você ganhou VIP por {VIP_HOURS} horas!",
+                        by="top_stats"
+                    )
