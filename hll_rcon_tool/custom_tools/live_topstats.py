@@ -104,16 +104,16 @@ TRANSL = {
     "allies": ["all", "all", "Allierte", "ALIADOS"],
     "axis": ["axi", "axe", "Achsenmächte", "EIXO"],
     "best_players": ["Best players", "Meilleurs joueurs", "Beste Spieler", "TOP »BAIN« PLAYER"],
-    "armycommander": ["Commander", "Commandant", "Kommandant", "TOP COMANDANTES"],
-    "infantry": ["Infantry", "Infanterie", "Infanterie", "TOP INFANTARIA"],
-    "tankers": ["Tankers", "Tankistes", "Panzerspieler", "TOP TANKISTAS"],
+    "armycommander": ["Commander", "Commandant", "Kommandant", "COMANDANTE"],
+    "infantry": ["Infantry", "Infanterie", "Infanterie", "INFANTARIA"],
+    "tankers": ["Tankers", "Tankistes", "Panzerspieler", "TANKISTAS"],
     "best_squads": ["Best squads", "Meilleures squads", "Beste Mannschaften", "MELHORES ESQUADRÕES"],
     "offense": ["attack", "attaque", "Angriff", "ATAQUE"],
     "defense": ["defense", "défense", "Verteidigung", "DEFESA"],
     "combat": ["combat", "combat", "Kampf", "(P) COMBATE"],
     "support": ["support", "soutien", "Unterstützung", "(P) SUPORTE"],
-    "ratio": ["ratio", "ratio", "Verhältnis", "MAIS KILL/MORTES"],
-    "killrate": ["kills/min", "kills/min", "Kills/min", "MAIS KILLS/MINUTO"],
+    "ratio": ["ratio", "ratio", "Verhältnis", "KILL/MORTES"],
+    "killrate": ["kills/min", "kills/min", "Kills/min", "KILL/MINUTO"],
     "vip_until": ["VIP until", "VIP jusqu'au", "VIP bis", "VIP até"],
     "already_vip": ["Already VIP !", "Déjà VIP !", "bereits VIP !", "PLAYER VIP!"]
 }
@@ -515,7 +515,8 @@ def stats_on_chat_command(
 
 def stats_on_match_end(
     rcon: Rcon,
-    struct_log: StructuredLogLineWithMetaData
+    struct_log: StructuredLogLineWithMetaData,
+    player_id: int  # Adicione player_id como parâmetro
 ):
     """
     Sends final top players in an ingame message to all the players
@@ -549,33 +550,12 @@ def stats_on_match_end(
             top_squads_infantry_offdef,
             top_squads_infantry_teamplay,
             top_squads_armor_offdef,
-            top_squads_armor_teamplay,
+            top_squads_armor_teamplay
         )
 
-        if message != f"{TRANSL['nostatsyet'][LANG]}":
-            message_all_players(rcon, message)
-            # Notify players who received VIP
-            for player in top_commanders_teamplay.split('\n')[:VIP_WINNERS]:
-                if player:
-                    player_name = player.split(' ')[0]
-                    rcon.message_player(
-                        player_name=player_name,
-                        message=f"Parabéns {player_name}, você ganhou VIP por {VIP_HOURS} horas!",
-                        by="top_stats"
-                    )
-            for player in top_infantry_offdef.split('\n')[:VIP_WINNERS]:
-                if player:
-                    player_name = player.split(' ')[0]
-                    rcon.message_player(
-                        player_name=player_name,
-                        message=f"Parabéns {player_name}, você ganhou VIP por {VIP_HOURS} horas!",
-                        by="top_stats"
-                    )
-            for player in top_infantry_teamplay.split('\n')[:VIP_WINNERS]:
-                if player:
-                    player_name = player.split(' ')[0]
-                    rcon.message_player(
-                        player_name=player_name,
-                        message=f"Parabéns {player_name}, você ganhou VIP por {VIP_HOURS} horas!",
-                        by="top_stats"
-                    )
+        rcon.message_player(
+            player_id=player_id,
+            message=message,
+            by="top_stats",
+            save_message=False
+        )
