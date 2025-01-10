@@ -1,144 +1,3 @@
-"""
-live_topstats.py
-
-A plugin for HLL CRCON (see : https://github.com/MarechJ/hll_rcon_tool)
-that displays and rewards top players, based on their scores.
-
-Source : https://github.com/ElGuillermo
-
-Feel free to use/modify/distribute, as long as you keep this note in your code
-"""
-
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
-from rcon.rcon import Rcon, StructuredLogLineWithMetaData
-from rcon.utils import get_server_number
-
-
-# Configuration (you must review/change these !)
-# -----------------------------------------------------------------------------
-
-# Translations
-# Available : 0 for english, 1 for french, 2 for german, 3 for brazilian portuguese
-LANG = 0
-
-# Can be enabled/disabled on your different game servers
-# ie : ["1"]           = enabled only on server 1
-#      ["1", "2"]      = enabled on servers 1 and 2
-#      ["2", "4", "5"] = enabled on servers 2, 4 and 5
-ENABLE_ON_SERVERS = ["1"]
-
-# Gives a bonus to defense
-# ie : 1.5  = defense counts 1.5x more than offense (defense bonus)
-#      1    = bonus disabled
-#      0.67 = offense counts 1.5x more than defense (defense malus)
-#      0.5  = offense counts 2x more than defense (defense malus)
-#      0    = bonus disabled
-# Any negative value will be converted to positive (ie : -1.5 -> 1.5)
-OFFENSEDEFENSE_RATIO = 1.5
-
-# Gives a bonus to support
-COMBATSUPPORT_RATIO = 1.5
-
-
-# Calling from chat
-# ----------------------------------------
-
-# CHAT command
-CHAT_COMMAND = "!top"
-
-# How many tops in each category should we display ?
-# Prefer 1-3 for a shorter message
-TOPS_CHAT = 3
-
-# Squads : display squad members for the nth top squads
-# Prefer 0 for a shorter message
-TOPS_CHAT_DETAIL_SQUADS = 1
-
-
-# Displayed at MATCH END
-# ----------------------------------------
-
-# How many tops in each category should we display ?
-# Prefer 1-3 for a shorter message
-TOPS_MATCHEND = 3
-
-# Squads : display squad members for the nth top squads
-# Prefer 0 for a shorter message
-TOPS_MATCHEND_DETAIL_SQUADS = 1
-
-# Give VIPs at match's end to the best nth top in each :
-# - commander (best combat + (support * COMBATSUPPORT_RATIO))
-# - infantry (best offense * (defense * OFFENSEDEFENSE_RATIO))
-# - infantry (best combat + (support * COMBATSUPPORT_RATIO))
-# ie :
-# 1 = gives a VIP to the top #1 players (3 VIPs awarded)
-# 2 = gives a VIP to the top #1 and #2 players (6 VIPs awarded)
-# 0 to disable
-VIP_WINNERS = 1
-
-# Avoid to give a VIP to a a "entered at last second" commander
-VIP_COMMANDER_MIN_PLAYTIME_MINS = 20
-VIP_COMMANDER_MIN_SUPPORT_SCORE = 1000
-
-# VIPs will be given if there is at least this number of players ingame
-# 0 to disable (VIP will always be given)
-# Recommended : the same number as your seed limit
-SEED_LIMIT = 40
-
-# How many VIP hours awarded ?
-# If the player already has a VIP that ends AFTER this delay, VIP won't be given.
-VIP_HOURS = 24
-
-# VIP announce : local time
-# Find you local timezone : https://utctime.info/timezone/
-LOCAL_TIMEZONE = "Europe/Paris"
-LOCAL_TIME_FORMAT = "%d/%m/%Y à %Hh%M"
-
-
-# Translations
-# "key" : ["english", "french", "german", "brazilian-portuguese"]
-# ----------------------------------------------
-
-TRANSL = {
-    "nostatsyet": ["No stats yet", "Pas de stats", "noch keine Statistiken", "Sem estatísticas ainda"],
-    "allies": ["all", "all", "Allierte", "aliados"],
-    "axis": ["axi", "axe", "Achsenmächte", "eixo"],
-    "best_players": ["Best players", "Meilleurs joueurs", "Beste Spieler", "Melhores jogadores"],
-    "armycommander": ["Commander", "Commandant", "Kommandant", "Comandante"],
-    "infantry": ["Infantry", "Infanterie", "Infanterie", "Infantaria"],
-    "tankers": ["Tankers", "Tankistes", "Panzerspieler", "Tanqueiros"],
-    "best_squads": ["Best squads", "Meilleures squads", "Beste Mannschaften", "Melhores esquadrões"],
-    "offense": ["attack", "attaque", "Angriff", "ataque"],
-    "defense": ["defense", "défense", "Verteidigung", "defesa"],
-    "combat": ["combat", "combat", "Kampf", "combate"],
-    "support": ["support", "soutien", "Unterstützung", "suporte"],
-    "ratio": ["ratio", "ratio", "Verhältnis", "proporção"],
-    "killrate": ["kills/min", "kills/min", "Kills/min", "abates/min"],
-    "vip_until": ["VIP until", "VIP jusqu'au", "VIP bis", "VIP até"],
-    "already_vip": ["Already VIP !", "Déjà VIP !", "bereits VIP !", "Já é VIP!"]
-}
-
-# (End of configuration)
-# -----------------------------------------------------------------------------
-
-
-def is_vip_for_less_than_xh(rcon: Rcon, player_id: str, vip_delay_hours: int):
-    """
-    returns 'true' if player has no VIP or a VIP that expires in less than vip_delay_hours,
-    'false' if he has a VIP that expires in more than vip_delay_hours or no VIP at all.
-    """
-    actual_vips = rcon.get_vip_ids()
-    for item in actual_vips:
-        if item['player_id'] == player_id and item['vip_expiration'] is not None:
-            vip_expiration_output = str(item['vip_expiration'])
-            vip_expiration = datetime.fromisoformat(vip_expiration_output)
-            if vip_expiration < datetime.now(timezone.utc) + timedelta(hours=vip_delay_hours):
-                return True
-            return False
-    return True  # player wasn't in the actual VIP list
-
-
 def get_top(
     rcon: Rcon,
     callmode: str,  # either "chat" or "matchend"
@@ -146,10 +5,7 @@ def get_top(
     data_bucket: list,
     sortkey,
     first_data: str,
-    second_data: str,
-    third_data: str,
-    fourth_data: str,
-    squadtype_allplayers : list  # Observed squad type ("infantry" or "tankers") players sats
+    squadtype_allplayers: list  # Observed squad type ("infantry" or "tankers") players sats
 ) -> str:
     """
     Returns a string, listing top players or squads, as calculated by sortkey
@@ -170,12 +26,7 @@ def get_top(
     iteration = 1
     for sample in sorted_data[:tops_limit]:
         if sortkey(sample) != 0:
-            if fourth_data == "":  # real_offdef, teamplay, ratio
-                if calltype == "squad":  # real_offdef, teamplay
-                    output += "■ "
-                output += f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sample[second_data]} ; {sample[third_data]}\n"
-            else:  # killrate (players only)
-                output += f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sortkey(sample)}\n"
+            output += f"{sample[first_data]} ({TRANSL[sample['team']][LANG]}): {sortkey(sample)}\n"
 
             # Squad members
             if (
@@ -199,7 +50,6 @@ def get_top(
             and VIP_WINNERS > 0
             and VIP_HOURS > 0  # Security : avoids to give a 0 hour VIP
             and server_status["current_players"] >= SEED_LIMIT
-            and second_data != "kills"  # No VIP for top ratios and killrates
             and iteration <= VIP_WINNERS
         ):
             # No VIP for "entered at last second" commander
@@ -225,132 +75,39 @@ def get_top(
     return output
 
 
-def give_xh_vip(rcon: Rcon, player_id: str, player_name: str, hours_awarded: int):
+def stats_gather(
+    rcon: Rcon,
+    callmode: str
+):
     """
-        Gives a x hours VIP
-        Returns a str that announces the VIP expiration (local) time
+    Calls team_view_stats() and gathers data in players categories
+    Then returns a tuple containing categories stats as calculated by get_top()
     """
-    # Kombiniert den Spielernamen mit "top_player"
-    combined_name = f"{player_name} Top-Player"
-    
-    # Gives X hours VIP
-    now_plus_xh = datetime.now(timezone.utc) + timedelta(hours=hours_awarded)
-    now_plus_xh_vip_formatted = now_plus_xh.strftime('%Y-%m-%dT%H:%M:%SZ')
-    rcon.add_vip(player_id, combined_name, now_plus_xh_vip_formatted)
-
-    # Returns a string giving the new expiration date in local time
-    now_plus_xh_utc = now_plus_xh.replace(tzinfo=ZoneInfo("UTC"))
-    now_plus_xh_paris_tz = now_plus_xh_utc.astimezone(ZoneInfo(LOCAL_TIMEZONE))
-    now_plus_xh_display_formatted = now_plus_xh_paris_tz.strftime(LOCAL_TIME_FORMAT)
-    return f"{TRANSL['vip_until'][LANG]} {str(now_plus_xh_display_formatted)} !\n"
-
-
-def message_all_players(rcon: Rcon, message: str):
-    """
-    Sends a message to all connected players
-    """
-    all_players_list = rcon.get_playerids()
-    for player in all_players_list:
-        player_name = player[0]
-        player_id = player[1]
-        try:
-            rcon.message_player(
-                player_name=player_name,
-                player_id=player_id,
-                message=message,
-                by="top_stats"
-            )
-        except Exception:
-            pass
-
-
-def ratio(obj) -> float:
-    """
-    returns (kills/deaths) score
-    """
-    deaths = int(obj["deaths"])
-    if deaths == 0:
-        deaths = 1
-    computed_ratio = int(obj["kills"]) / deaths
-    return round(computed_ratio, 1)
-
-
-def real_offdef(obj) -> int:
-    """
-    returns a combined offense * (defense * OFFENSEDEFENSE_RATIO) score
-    """
-    if OFFENSEDEFENSE_RATIO == 0:
-        return int(int(obj["offense"]) * int(obj["defense"]))
-    return int(int(obj["offense"]) * (int(obj["defense"]) * abs(OFFENSEDEFENSE_RATIO)))
-
-
-def teamplay(obj) -> int:
-    """
-    returns a combined combat + (support * COMBATSUPPORT_RATIO) score
-    """
-    if COMBATSUPPORT_RATIO == 0:
-        return int(int(obj["combat"]) + int(obj["support"]))    
-    return int(int(obj["combat"]) + int(obj["support"]) * abs(COMBATSUPPORT_RATIO))
-
-
-def killrate(obj) -> float:
-    """
-    returns kills/playtime in minutes
-    """
-    kills = int(obj["kills"])
-    offense = int(obj["offense"])
-    defense = int(obj["defense"])
-    if kills == 0:
-        return 0
-    if offense == 0 and defense == 0:
-        return 0
-    return round((kills / ((offense + defense) / 20)), 1)
-
-
-def team_view_stats(rcon: Rcon):
-    """
-    Get the get_team_view data
-    and gather the infos according to the squad types and soldier roles
-    """
-    get_team_view: dict = rcon.get_team_view()
-
-    all_commanders = []
-    all_players_infantry = []
-    all_players_armor = []
-    all_squads_infantry = []
-    all_squads_armor = []
-
-    for team in ["allies", "axis"]:
-
-        if team in get_team_view:
-
-            # Commanders
-            if get_team_view[team]["commander"] is not None:
-                all_commanders.append(get_team_view[team]["commander"])
-
-            for squad in get_team_view[team]["squads"]:
-
-                squad_data = get_team_view[team]["squads"][squad]
-                squad_data["team"] = team
-
-                # Infantry
-                if squad_data["type"] == "infantry" or squad_data["type"] == "recon":
-                    all_players_infantry.extend(squad_data["players"])
-                    squad_data.pop("players", None)
-                    all_squads_infantry.append({squad: squad_data})
-
-                # Armor
-                elif squad_data["type"] == "armor":
-                    all_players_armor.extend(squad_data["players"])
-                    squad_data.pop("players", None)
-                    all_squads_armor.append({squad: squad_data})
-
-    return (
+    (
         all_commanders,
         all_players_infantry,
         all_players_armor,
         all_squads_infantry,
         all_squads_armor
+    ) = team_view_stats(rcon)
+
+    all_squads_infantry = [{'name': key, **value} for item in all_squads_infantry for key, value in item.items()]
+    all_squads_armor = [{'name': key, **value} for item in all_squads_armor for key, value in item.items()]
+
+    return (
+        # Players (commanders)
+        get_top(rcon, callmode, "player", all_commanders, teamplay, "name", all_commanders),
+        # Players (infantry)
+        get_top(rcon, callmode, "player", all_players_infantry, real_offdef, "name", all_players_infantry),
+        get_top(rcon, callmode, "player", all_players_infantry, teamplay, "name", all_players_infantry),
+        get_top(rcon, callmode, "player", all_players_infantry, ratio, "name", all_players_infantry),
+        get_top(rcon, callmode, "player", all_players_infantry, killrate, "name", all_players_infantry),
+        # Squads (infantry)
+        get_top(rcon, callmode, "squad", all_squads_infantry, real_offdef, "name", all_players_infantry),
+        get_top(rcon, callmode, "squad", all_squads_infantry, teamplay, "name", all_players_infantry),
+        # Squads (armor)
+        get_top(rcon, callmode, "squad", all_squads_armor, real_offdef, "name", all_players_armor),
+        get_top(rcon, callmode, "squad", all_squads_armor, teamplay, "name", all_players_armor)
     )
 
 
@@ -436,42 +193,6 @@ def stats_display(
         return f"{TRANSL['nostatsyet'][LANG]}"
 
     return message
-
-
-def stats_gather(
-    rcon: Rcon,
-    callmode: str
-):
-    """
-    Calls team_view_stats() and gathers data in players categories
-    Then returns a tuple containing categories stats as calculated by get_top()
-    """
-    (
-        all_commanders,
-        all_players_infantry,
-        all_players_armor,
-        all_squads_infantry,
-        all_squads_armor
-    ) = team_view_stats(rcon)
-
-    all_squads_infantry = [{'name': key, **value} for item in all_squads_infantry for key, value in item.items()]
-    all_squads_armor = [{'name': key, **value} for item in all_squads_armor for key, value in item.items()]
-
-    return (
-        # Players (commanders)
-        get_top(rcon, callmode, "player", all_commanders, teamplay, "name", "combat", "support", "", all_commanders),
-        # Players (infantry)
-        get_top(rcon, callmode, "player", all_players_infantry, real_offdef, "name", "offense", "defense", "", all_players_infantry),
-        get_top(rcon, callmode, "player", all_players_infantry, teamplay, "name", "combat", "support", "", all_players_infantry),
-        get_top(rcon, callmode, "player", all_players_infantry, ratio, "name", "kills", "deaths", "", all_players_infantry),
-        get_top(rcon, callmode, "player", all_players_infantry, killrate, "name", "kills", "offense", "defense", all_players_infantry),
-        # Squads (infantry)
-        get_top(rcon, callmode, "squad", all_squads_infantry, real_offdef, "name", "offense", "defense", "", all_players_infantry),
-        get_top(rcon, callmode, "squad", all_squads_infantry, teamplay, "name", "combat", "support", "", all_players_infantry),
-        # Squads (armor)
-        get_top(rcon, callmode, "squad", all_squads_armor, real_offdef, "name", "offense", "defense", "", all_players_armor),
-        get_top(rcon, callmode, "squad", all_squads_armor, teamplay, "name", "combat", "support", "", all_players_armor)
-    )
 
 
 def stats_on_chat_command(
